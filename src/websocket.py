@@ -138,7 +138,10 @@ class Websocket():
             
         #Write to the config file
         file = open(config_path,'w')
-        file.write(f"WS_ADDRESS = ws://{address}")
+        file.write("# Place the config file under the appdata folder for your unity project!\n")
+        file.write(f"WS_ADDRESS = ws://{address}\n")
+        file.write(f"COMMS_PORT = {utils.WEBSOCKET_COMMS_PORT}\n")
+        file.write(f"WEBCAM_PORT = {utils.WEBSOCKET_WEBCAM_PORT}\n")
         file.close()
         
         

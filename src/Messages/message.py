@@ -8,8 +8,8 @@ class Message():
     """Represents a message, saving information about who sent it, 
     """
     
-    def __init__(self,user,content):
-        self.sender = user
+    def __init__(self,sender,content):
+        self.sender = sender
         self.content = content
         self.stamp = ""
         

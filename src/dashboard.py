@@ -13,7 +13,7 @@ class DashboardSettings:
 
     def __init__(self):
         self.stream_webcam: bool = True
-
+        self.webcam_size = (640, 320) #The size of the webcam preview
 
 class Dashboard:
 
@@ -70,18 +70,19 @@ class Dashboard:
             self.draw_control_actions()
     # endregion
     
-    # region -Dialogs (Cards)
+    # region - Dialogs (Cards)
 
     def setup_dialogs(self):
         """Sets up the dialogs, so they can be opened by buttons or other actions.
+            This is where the style and look of the cards are defined.
         """
 
         # Settings
         self.settings_dialog = ui.dialog()
 
         # Settings Dialog
-        with self.settings_dialog, ui.card().classes("bg-grey-9 rounded w-3/4").style("max-width: none"):
-            ui.label("App Settings").classes("text-2xl text-white")
+        with self.settings_dialog, ui.card().classes(f"{self.sh.app_settings_dialog_color} rounded w-3/4").style("max-width: none"):
+            ui.label("App Settings").classes("text-3xl")
             with ui.column().style("width:100%;"):
                 self.draw_dashboard_options()
 
@@ -100,17 +101,6 @@ class Dashboard:
 
     
     # region - Webcam
-    @ui.refreshable
-    def draw_webcam_status(self):
-        """Draws the webcam websocket status
-        """
-        
-        with ui.row():
-            ui.label("Webcam Stream Status:").classes("text-2xl text-white")
-            if self.webcam_ws_connected:
-                ui.icon(name="check_circle", color="green").props("size=md")
-            else:
-                ui.icon(name="cancel", color="red").props("size=md")
 
     @ui.refreshable
     def draw_webcam_preview(self):
@@ -118,8 +108,8 @@ class Dashboard:
         """
         
         with ui.column().classes(" items-center").style("width:30%"):
-            ui.label("Webcam Preview").classes("text-2xl text-white")
-            self.webcam_image = ui.interactive_image("/media/placeholder.png").classes("rounded border-white border-solid border-2").style("max-width:640px;width:auto;height:auto;")  # Webcam element
+            ui.label("Webcam Preview").classes("text-3xl")
+            self.webcam_image = ui.interactive_image("/media/placeholder.png").classes(f"rounded {self.sh.border_color} border-solid {self.sh.border_thickness}").style(f"max-width:{self.dashboard_settings.webcam_size[0]}px;max-height:{self.dashboard_settings.webcam_size[1]}px;width:auto;height:auto;")  # Webcam element
 
             with ui.column().classes("w-full items-center"):
                 self.draw_ws_status()
@@ -131,13 +121,27 @@ class Dashboard:
         """
         
         with ui.row():
-            ui.label("Comms WebSocket Status:").classes("text-2xl text-white")
+            ui.label("Comms WebSocket Status:").classes("text-2xl")
             if self.comms_ws_connected:
                 ui.icon(name="check_circle", color="green").props("size=md")
             else:
                 ui.icon(name="cancel", color="red").props("size=md")
     
+    
+    @ui.refreshable
+    def draw_webcam_status(self):
+        """Draws the webcam websocket status
+        """
+        
+        with ui.row():
+            ui.label("Webcam Stream Status:").classes("text-2xl")
+            if self.webcam_ws_connected:
+                ui.icon(name="check_circle", color="green").props("size=md")
+            else:
+                ui.icon(name="cancel", color="red").props("size=md")
+
     # endregion
+    
     # region - Chatbox
     @ui.refreshable
     def draw_chatbox(self):
@@ -145,11 +149,11 @@ class Dashboard:
         """
         
         with ui.row().classes("justify-center").style("width:35%"):
-            ui.label("Chatbox").classes("text-2xl text-white")
-            with ui.scroll_area().classes("rounded border-white border-solid border-2 bg-neutral-600").style("height:450px;") as scroll:
+            ui.label("Chatbox").classes("text-3xl ")
+            with ui.scroll_area().classes(f"rounded {self.sh.border_color} {self.sh.chat_color} border-solid {self.sh.border_thickness}").style("height:450px;") as scroll:
                 scroll.scroll_to(percent=1)
                 self.draw_messages()
-            ui.input(label="Type here").bind_value(self, "text_input").on("keydown.enter", self.submit_message).classes("bg-neutral-600 rounded border-white border-solid border-2 px-2 py-1").style(
+            ui.input(label="Type here").bind_value(self, "text_input").on("keydown.enter", self.submit_message).classes(f"{self.sh.chat_color} rounded {self.sh.border_color} border-solid {self.sh.border_thickness} px-2 py-1").style(
                 "width:100%; margin-top:-15px;"
             )
 
@@ -161,9 +165,9 @@ class Dashboard:
         for message in self.message_log.get_all_messages():
             with ui.row().style("width:100%;"):
                 if message.sender.lower() == "server":
-                    ui.chat_message(text=message.get_content(), name=message.get_sender().upper(), stamp=message.get_timestamp(), avatar=self.robot_icon, sent=True).style("width:100%;")
+                    ui.chat_message(text=message.get_content(), name=message.get_sender().upper(), stamp=message.get_timestamp(), avatar=self.robot_icon, sent=True).props(f"{self.sh.sent_message_color}").style("width:100%;")
                 elif message.sender.lower() == "user":
-                    ui.chat_message(text=message.get_content(), name=message.get_sender().upper(), stamp=message.get_timestamp(), avatar=self.user_icon, sent=False)
+                    ui.chat_message(text=message.get_content(), name=message.get_sender().upper(), stamp=message.get_timestamp(), avatar=self.user_icon, sent=False).props(f"{self.sh.received_message_color}")
 
     # endregion
     # region - Actions
@@ -175,40 +179,42 @@ class Dashboard:
         with ui.row().classes("justify-center").style("width:30%"):
             with ui.column().classes("w-full").style("align-items: anchor-center;"):
                 
-                ui.label("Change App Settings").classes('text-2xl text-white')
-                with ui.button(text="App Settings",on_click=self.open_app_settings):
+                ui.label("Change App Settings").classes('text-3xl')
+                with ui.button(text="App Settings",on_click=self.open_app_settings,color=self.sh.button_main_color).classes("text-white"): #To add a tooltip to a button, use the with: keyword
                     ui.tooltip('Configure the app')
                     
     @ui.refreshable
     def draw_dashboard_options(self):
         """Draws the dashboard options panel, containing the settings of the dashboard
         """
-        with ui.row().classes("bg-neutral-500  rounded items-center").style("width:auto; padding-left:10px;"):
+        with ui.row().classes(f"bg-{self.sh.button_main_color}  rounded items-center").style("width:auto; padding-left:10px;"):
             ui.label("Stream Webcam: ").classes("text-white text-weight-bold lg").style("display: contents !important;")
             ui.checkbox().bind_value(self.dashboard_settings,"stream_webcam").classes("text-weight-bold lg").props('color=blue-9 label-color=white input-class=text-white').style("display: contents !important;")
 
     # region - Image
     
-
     async def set_webcam_image(self, image_data):
         """Sets the webcam image source to the newly provided image data
 
         Args:
             image_data (bytes): The image data to display
         """
-        if not self.has_modal_open() and hasattr(self, "image_element"):  # Stop image refresh when you have a modal open, for performance's sake
+        if not self.has_modal_open() and hasattr(self, "webcam_image"):  # Stop image refresh when you have a modal open, for performance's sake
+
             self.webcam_image.set_source(image_data)
+
+
 
     def set_no_image(self):
         """Resets the webcam image to the placeholder
         """
         
-        if hasattr(self, "image_element"):
+        if hasattr(self, "webcam_image"):
             
             self.webcam_image.set_source(media_path + "/placeholder.png")
             
-
     # endregion
+    
     # region - Message
     def save_message_json(self, message_data) -> str:
         """Saves a received message in json format, converting it to Message and returning its contents
@@ -257,7 +263,7 @@ class Dashboard:
         self.draw_chatbox.refresh()
 
     async def submit_message(self):
-        msg = Message(content=self.text_input, user="server")
+        msg = Message(content=self.text_input, sender="server")
         
         self.save_message(msg)
 
@@ -279,9 +285,12 @@ class Dashboard:
 
     # endregion
     
-    # region - Button actions
+    # region - Button actions 
+    # Define your button actions here for organization's sake
 
     def open_app_settings(self):
+        """Opens the dialog/card that contains the app settings
+        """
         self.settings_opened = True
         self.redraw()
 
@@ -291,7 +300,8 @@ class Dashboard:
 
     def has_modal_open(self):
         """
-        Check if any settings modal is currently open.
+        Check if any settings modal is currently open. This function is useful if you want to hold out on executing a function if the user is busy
+        with a modal/card/dialog open.
 
         Returns:
             bool: True if any settings modal is open, False otherwise.
@@ -320,19 +330,27 @@ class Dashboard:
             self.notify_safe(message)
 
     def set_ws_active(self):
+        """Sets the comms socket as active
+        """
         self.comms_ws_connected = True
         self.draw_ws_status.refresh()
 
     def set_webcam_ws_active(self):
+        """Sets the webcam socket as active
+        """
         self.webcam_ws_connected = True
         self.draw_webcam_status.refresh()
 
     def set_ws_inactive(self):
+        """Sets the comms socket as inactive
+        """
         # print("Comms down")
         self.comms_ws_connected = False
         self.draw_ws_status.refresh()
 
     def set_webcam_ws_inactive(self):
+        """Sets the webcam socket as inactive
+        """
         # print("Webcam down")
         self.webcam_ws_connected = False
         self.draw_webcam_status.refresh()

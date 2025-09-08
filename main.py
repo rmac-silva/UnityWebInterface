@@ -11,9 +11,6 @@ from src.dashboard import Dashboard
 import src.utils as utils
 from src.websocket import Websocket
 
-# the model to use for the agent
-LLM_MODEL = "gpt-4o"
-
 
 class App:
     """The Flask application class, responsible for managing the Flask server & agent interactions"""
@@ -50,6 +47,9 @@ class App:
         """
         return self.dashboard
 
+    def create_dashboard_notification(self, content : str):
+        self.dashboard.notify_safe(content)
+    
     def run_app(self):
         """Runs the webapp"""
 
@@ -106,17 +106,16 @@ class App:
 
         if not self.dashboard.dashboard_settings.stream_webcam:
             return
-
+        
         try:
             loop = asyncio.get_event_loop()
             image = Image.open(io.BytesIO(image_data))
-            image.resize((640, 360))
+            image.resize(self.dashboard.dashboard_settings.webcam_size)
             loop.create_task(self.dashboard.set_webcam_image(image))  # Once loaded, sets the image
         except RuntimeError:
-            print("No running loop found for setting webcam!")
-            # If we're not in a running event loop, run a task manually (blocking)
+            # If we're not in a running event loop, run the task manually (blocking)
             image = Image.open(io.BytesIO(image_data))
-            image.resize((640, 360))
+            image.resize(self.dashboard.dashboard_settings.webcam_size)
             asyncio.run(self.dashboard.set_webcam_image(image))  # Once loaded, sets the image
 
     async def process_input(self, data):
@@ -153,25 +152,15 @@ class App:
         if not os.path.isdir(utils.media_path):
             os.mkdir(utils.media_path)
 
-        # Create graph folder if it doesn't exist
-        graph_path = utils.media_path + "/graphs"
-        if not os.path.isdir(graph_path):
-            os.mkdir(graph_path)
-
         # Create logs folder if it doesn't exist
         logs_path = utils.script_dir + "./WebappLogs"
         if not os.path.isdir(logs_path):
             os.mkdir(logs_path)
 
-        # Erase the old graphs from last session
 
-        for filename in os.listdir(utils.media_path_graphs):
-            file_path = os.path.join(utils.media_path_graphs, filename)
-            if os.path.isfile(file_path):
-                os.remove(file_path)
-
-        # Add static files to the dashboard, meaning files placed in the utils.media_path will be usable by the application
+        # Add static files to the dashboard, meaning files placed in the utils.media_path will be usable by the nicegui application
         app.add_static_files("/media", utils.media_path)
+
 
 
 if __name__ in {"__main__", "__mp_main__"}:
@@ -179,3 +168,7 @@ if __name__ in {"__main__", "__mp_main__"}:
 
     main_app = App(ws=ws)
     main_app.run_app()
+
+@ui.page("/dashboard")
+def create_dashboard_page():
+    main_app.dashboard.create_dashboard()

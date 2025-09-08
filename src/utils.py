@@ -9,7 +9,7 @@ WEBSOCKET_COMMS_PORT = 5001
 WEBSOCKET_MSG_SIZE = 4 * 1024 * 1024
 
 #Directories, assumes everything is local ./
-script_dir = ""
+script_dir = "."
 media_path = script_dir + "/Media"
 log_path = script_dir + "/WebappLogs"
 media_path_graphs = script_dir + "/Media/graphs"
@@ -31,7 +31,26 @@ class StylingHelper():
     """
     def __init__(self):
         
+        #Colors - HexCodes - https://htmlcolorcodes.com/color-picker
         self.bg_color = "#e6e6e6"
+        
+        #Colors - Quasar Colors - https://quasar.dev/style/color-palette#color-list / https://tailwindcss.com/docs/colors
+        #These elements use the Quasar/Tailwind Colors, since editing the background color does not achieve the desired effect
+        
+        #Chatbox
+        self.chat_color = "bg-grey-3" # Goes into .classes
+        self.sent_message_color = "bg-color=amber-6" # Goes into .props
+        self.received_message_color = "bg-color=green-6" # Goes into .props
+        
+        # Button Colors
+        self.button_main_color = "blue-500"
+        
+        #Dialogs / Cards
+        self.app_settings_dialog_color = "bg-neutral-100" # Goes into .classes
+        
+        #Borders
+        self.border_color = "border-black"
+        self.border_thickness = "border-2"
 
 def generate_padding(len : int):
     return '#'*len
