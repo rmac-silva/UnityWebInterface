@@ -125,18 +125,19 @@ class App:
             data (byte[]): The incoming data as a byte array
         """
 
-        header = data[0:8].decode("utf-8")
+        header = data[0:utils.HEADER_LENGTH].decode("utf-8") #First 8 bytes are the header
 
         print(f"Received communication: {header}")
+        
         if header == utils.MessageTypes.MESSAGE_TYPE:  # User Message/Prompt
-            received_msg_str = self.dashboard.save_message_json(data[8:])  # Returns the received message string
+            received_msg_str = self.dashboard.save_message_json(data[utils.HEADER_LENGTH:])  # Returns the received message string
 
             # If you wish to perform any other operations with the message, you can do them here
 
         if header == utils.MessageTypes.MESSAGE_SYNC:  # Message Log
 
             # By default, the dashboard loads all messages from unity, meaning the game's message log replaces the dashboard message log
-            self.dashboard.replace_message_log(data[8:])
+            self.dashboard.replace_message_log(data[utils.HEADER_LENGTH:])
 
     async def process_webcam_data(self, data):
         """Processes webcam data

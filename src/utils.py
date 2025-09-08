@@ -7,6 +7,7 @@ import time
 WEBSOCKET_WEBCAM_PORT = 5000
 WEBSOCKET_COMMS_PORT = 5001
 WEBSOCKET_MSG_SIZE = 4 * 1024 * 1024
+HEADER_LENGTH = 8
 
 #Directories, assumes everything is local ./
 script_dir = "."
@@ -19,7 +20,7 @@ media_path_graphs = script_dir + "/Media/graphs"
 # ! Message types, 8 bits maximum.
 ## Messaging
 class MessageTypes:
-    """To add new message types simply add a new entry here. They can have a maximum of 8 characters in length.
+    """To add new message types simply add a new entry here. THEY CAN HAVE A MAXIMUM OF 8 (HEADER_LENGTH) CHARACTERS IN LENGTH.
     """
     
     MESSAGE_TYPE = "M" #Represents a text message

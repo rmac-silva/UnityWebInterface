@@ -1,0 +1,1 @@
+{"rule":"MORFOLOGIK_RULE_EN_US","sentence":"^\\QWeb Server Setup\nClone the repository to your local machine;\nRun main.py to start the web server;\nCopy the newly generated config.cfg file to your Unity persistent data path (%Appdata%/LocalLow/YourCompanyName/YourProjectName/config.cfg);\\E$"}
