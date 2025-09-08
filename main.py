@@ -74,8 +74,10 @@ class App:
             self.dashboard.set_webcam_ws_active()
         elif websocket_type == "comms":
             self.dashboard.set_ws_active()
+            self.dashboard.message_log.clear_messages()  # Clears messages on new connection
             self.dashboard.sync_information()  # Syncs information between dashboard and game
             self.logger.create_new_log()  # Opens a new log, on each connection of the websocket
+            self.dashboard.redraw()  # Redraws the dashboard to ensure everything is up to date
 
         else:
             print(f"Error handling websocket open for type: {websocket_type}!")
@@ -125,8 +127,7 @@ class App:
             data (byte[]): The incoming data as a byte array
         """
 
-        header = data[0:utils.HEADER_LENGTH].decode("utf-8") #First 8 bytes are the header
-
+        header = data[0:utils.HEADER_LENGTH].decode("utf-8").replace("#","") #First 8 bytes are the header
         print(f"Received communication: {header}")
         
         if header == utils.MessageTypes.MESSAGE_TYPE:  # User Message/Prompt
