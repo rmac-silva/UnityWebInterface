@@ -54,3 +54,6 @@ In Python this is done under main.py in the `process_input` function. Simply add
 In Unity this is done under RequestFramework.cs in the `InterpretMessage` function. Simply add a new case in the switch statement checking for your new message type, and implement the desired functionality.
 
 3. **JSONifying Messages**: If your new message type involves sending complex data, consider using JSON to structure the data. In Python, you can use the `json` module to serialize and deserialize data. In Unity, you can use `JsonUtility` for similar functionality. The pre-existing JSON classes used in Unity are under the JsonClasses.cs file. In Python these are under the Messages/message.py file.
+
+# Using Conversational Agents
+If you wish to use conversational agents in your project, please download the code from the conversational-agents branch instead.
