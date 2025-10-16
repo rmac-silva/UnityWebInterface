@@ -195,7 +195,6 @@ class AgentManager():
         self.app.disable_agent()
         await asyncio.to_thread(self.current_state.process_command, prompt, image)
 
-
     
 
     

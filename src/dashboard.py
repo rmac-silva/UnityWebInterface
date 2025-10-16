@@ -57,6 +57,9 @@ class Dashboard:
         # Dialogs
         self.settings_opened = False
         
+        self.action_editor_opened = False
+        self.edited_action = None
+        
         #Agent Actions
         self.auto_accept = False
         self.agent_actions : List[AgentAction] = []
@@ -101,6 +104,9 @@ class Dashboard:
 
         # Settings
         self.settings_dialog = ui.dialog()
+        
+        # Action editor
+        self.action_editor_dialog = ui.dialog()
 
         # Settings Dialog
         with self.settings_dialog, ui.card().classes(f"{self.sh.app_settings_dialog_color} rounded w-3/4").style("max-width: none"):
@@ -108,6 +114,11 @@ class Dashboard:
             with ui.column().style("width:100%;"):
                 self.draw_dashboard_options()
 
+        with self.action_editor_dialog, ui.card().classes("bg-grey-9 rounded w-3/4").style('max-width: none'):
+            ui.label('Action Editor').classes('text-2xl text-white')
+            with ui.column().style("width:100%;"):
+                self.draw_action_editor()
+        
     @ui.refreshable
     def draw_dialogs(self):
         """Draws the currently open dialogs.
@@ -119,6 +130,9 @@ class Dashboard:
             self.settings_dialog.open()
             self.settings_dialog.on("hide", lambda: setattr(self, "settings_opened", False))
 
+        if(self.action_editor_opened):
+            self.action_editor_dialog.open()
+            self.action_editor_dialog.on('hide', lambda: setattr(self,"action_editor_opened",False))
     # endregion
 
     
@@ -354,7 +368,7 @@ class Dashboard:
     #Agent messages
     def send_agent_message(self, msg : str):
         with self.client:
-            new_msg = Message(content=msg,user="server")
+            new_msg = Message(sender="server",content=msg,)
             self.save_message(new_msg)
             try:
                 loop = asyncio.get_running_loop()

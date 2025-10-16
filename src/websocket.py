@@ -107,7 +107,6 @@ class Websocket():
 
         if conn != -1 and type(conn) is not int:
             try:
-
                 self.app.create_dashboard_notification(f"[WS] Sending: {header} | {content if len(content) < 20 else content[0:20]}")
                 await conn.send(header+content)
             except Exception as e:

@@ -142,7 +142,7 @@ class App:
             received_msg_str = self.dashboard.save_message_json(data[utils.HEADER_LENGTH:])  # Returns the received message string
 
             # If you wish to perform any other operations with the message, you can do them here
-            # For example, let's send this message to the agent
+            # For example, let's prompt the agent with this message
             await self.prompt_agent(received_msg_str)
 
         if header == utils.MessageTypes.MESSAGE_SYNC:  # Message Log
@@ -184,6 +184,7 @@ class App:
         await self.agent.prompt_agent(prompt)
         
     def send_message_to_user(self, message : str):
+        
         action = AgentAction("MSG",self.dashboard.send_agent_message,{"msg" : message},"Sends a message to the user.")
         self.logger.write_agent_action(action)
         self.add_agent_action(action)
@@ -225,6 +226,7 @@ class App:
             asyncio.run(self.ws.send_content(utils.MessageTypes.AGENT_BUSY,""))
 
     def send_agent_state(self, ready : bool):
+        print("Sending agent state: " + ("READY" if ready else "BUSY"))
         try:
             loop = asyncio.get_event_loop()
             loop.create_task(self.ws.send_content(utils.MessageTypes.AGENT_READY if ready else utils.MessageTypes.AGENT_BUSY ,""))
