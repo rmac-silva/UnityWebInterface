@@ -4,7 +4,7 @@ from typing import Set
 import src.utils as utils
 from pathlib import Path
 import websockets
-from websockets.server import WebSocketServerProtocol # type: ignore
+from websockets.server import WebSocketServerProtocol  # type: ignore
 
 class Websocket():
     """This class represents the websocket connections for the application. It has two websockets, one for communication between the game 

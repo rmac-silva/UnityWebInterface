@@ -10,13 +10,19 @@ from src.dashboard import Dashboard
 # Objects
 import src.utils as utils
 from src.websocket import Websocket
+from src.Agent.AgentManager import AgentManager
+from src.Agent.AgentAction import AgentAction
 
+
+# Default LLM
+LLM_DEFAULT = "gpt-4o"
 
 class App:
     """The Flask application class, responsible for managing the Flask server & agent interactions"""
 
     def __init__(self, ws: Websocket):
         # Setup agent with access to the main app
+        self.agent = AgentManager(LLM_DEFAULT,"Reactive",self,True) #Change this to True if you want console prints from the agent!
 
         self.ws = ws
 
@@ -78,6 +84,8 @@ class App:
             self.dashboard.sync_information()  # Syncs information between dashboard and game
             self.logger.create_new_log()  # Opens a new log, on each connection of the websocket
             self.dashboard.redraw()  # Redraws the dashboard to ensure everything is up to date
+            self.enable_agent(bypass=True)
+            
 
         else:
             print(f"Error handling websocket open for type: {websocket_type}!")
@@ -134,6 +142,8 @@ class App:
             received_msg_str = self.dashboard.save_message_json(data[utils.HEADER_LENGTH:])  # Returns the received message string
 
             # If you wish to perform any other operations with the message, you can do them here
+            # For example, let's send this message to the agent
+            await self.prompt_agent(received_msg_str)
 
         if header == utils.MessageTypes.MESSAGE_SYNC:  # Message Log
 
@@ -163,7 +173,64 @@ class App:
         # Add static files to the dashboard, meaning files placed in the utils.media_path will be usable by the nicegui application
         app.add_static_files("/media", utils.media_path)
 
+    #region - Agent Interactions
+    async def prompt_agent(self, prompt : str):
+        """Sends a prompt to the current agent
 
+        Args:
+            prompt (str): The user prompt
+        """
+        self.logger.write_user_message(prompt) # Log the user prompt
+        await self.agent.prompt_agent(prompt)
+        
+    def send_message_to_user(self, message : str):
+        action = AgentAction("MSG",self.dashboard.send_agent_message,{"msg" : message},"Sends a message to the user.")
+        self.logger.write_agent_action(action)
+        self.add_agent_action(action)
+        
+    def swap_agent_type(self, agent_type : str):
+        """Swaps the current agent type from Reactive to Proactive for example
+
+        Args:
+            agent_type (str): The agent type
+        """
+        
+        self.agent.swap_config(agent_type,LLM_DEFAULT)
+
+    def add_agent_action(self, action : AgentAction):
+        """Adds an agent action to the pending action list.
+
+        Args:
+            action (AgentAction): the action the system intends on doing
+        """
+        self.dashboard.add_agent_action(action)
+        
+    def enable_agent(self, bypass = False):
+        if(bypass):
+            self.send_agent_state(True)
+        else:
+            action = AgentAction("SYNC",self.send_agent_state,{'ready' : True},"Tells unity the agent is ready to communicate again")
+            self.logger.write_agent_action(action)
+            self.add_agent_action(action)
+    
+    def disable_agent(self):
+        action = AgentAction("SYNC",self.send_agent_state,{'ready' : False},"Tells unity the agent is ready to communicate again")
+        action.executed = True
+        self.logger.write_agent_action(action)
+        try:
+            loop = asyncio.get_event_loop()
+            loop.create_task(self.ws.send_content(utils.MessageTypes.AGENT_BUSY ,""))
+        except RuntimeError:
+            # If we're not in a running event loop, run a task manually (blocking)
+            asyncio.run(self.ws.send_content(utils.MessageTypes.AGENT_BUSY,""))
+
+    def send_agent_state(self, ready : bool):
+        try:
+            loop = asyncio.get_event_loop()
+            loop.create_task(self.ws.send_content(utils.MessageTypes.AGENT_READY if ready else utils.MessageTypes.AGENT_BUSY ,""))
+        except RuntimeError:
+            # If we're not in a running event loop, run a task manually (blocking)
+            asyncio.run(self.ws.send_content(utils.MessageTypes.AGENT_READY if ready else utils.MessageTypes.AGENT_BUSY,""))
 
 if __name__ in {"__main__", "__mp_main__"}:
     ws = Websocket()

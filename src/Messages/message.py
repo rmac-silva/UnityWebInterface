@@ -92,3 +92,4 @@ class PlaceboManager():
             return Message("agent",message.text)
         except ValueError:
             return Message("","")
+        

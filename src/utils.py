@@ -2,6 +2,7 @@ import socket
 import os
 from pathlib import Path
 import time
+from src.Agent.AgentAction import AgentAction
 
 #Ports to use
 WEBSOCKET_WEBCAM_PORT = 5000
@@ -26,6 +27,8 @@ class MessageTypes:
     MESSAGE_TYPE = "M" #Represents a text message
     MESSAGE_SYNC = "MSG_SYNC" #Represents a message sync, where unity and the dashboard exchange the message logs
 
+    AGENT_BUSY = "##A_BUSY" #Represents that the agent is busy and cannot take new prompts
+    AGENT_READY = "###A_RDY" #Represents that the agent is ready to take new prompts
 
 class StylingHelper():
     """This styling helper can help define the styling for the dashboard UI elements. You can define additional colors and variables here.
@@ -80,9 +83,12 @@ class Logger():
     
     def __init__(self):
         self.log_file = None   
+        self.turn = 0       
+        
     
     def create_new_log(self):
         self.current_time = f"{get_current_date_formatted()}--{get_current_time_formatted()}"
+        self.turn = 0
         self.open_file()
         
     def close_logs(self):
@@ -98,8 +104,8 @@ class Logger():
             os.mkdir(log_path)
             self.log_file = open(f"{log_path}/{self.current_time}.csv",'x')
         
-        # ! Write the header of your log file here
-        # self.log_file.write("turn;action;author;timestamp;function_name;execution_state\n")
+        # Default header for the agent CSV log file
+        self.log_file.write("turn;action;author;timestamp;function_name;execution_state\n")
         
         
     
@@ -115,6 +121,32 @@ class Logger():
         self.log_file.write(f"{content}\n")
         self.log_file.flush()
         
+    def write_agent_action(self, action : AgentAction):
+        if(self.log_file is None):
+            return
+        
+        self.log_file.write(f"{self.turn};{action.print_args()};agent;{get_current_time_formatted()};{action.function.__name__};{action.get_state()}\n")
+        self.log_file.flush()
+        
+    def write_woz_action(self, action : AgentAction):
+        if(self.log_file is None):
+            return
+        
+        self.log_file.write(f"{self.turn};{action.print_args()};WoZ;{get_current_time_formatted()};{action.function.__name__};EXECUTED\n")
+        self.log_file.flush()
+
+    def write_user_message(self, message_content : str):
+        if(self.log_file is None):
+            return
+        
+        self.log_file.write(f"{self.turn};msg=\'{message_content}\';user;{get_current_time_formatted()};send_user_message;EXECUTED\n")
+        self.log_file.flush()
+        
+    def advance_turn(self):
+        if(self.log_file is None):
+            return
+        
+        self.turn += 1 
         
 def get_current_time_formatted():
     return time.strftime("%Hh-%Mm-%Ss", time.localtime())

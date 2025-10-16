@@ -1,2 +1,6 @@
 WebappLogs/*.csv
 *.pyc
+env/
+src/Agent/LLMs/.env
+*.pyc
+.env
