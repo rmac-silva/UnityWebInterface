@@ -1,2 +1,4 @@
 WebappLogs/*.csv
 *.pyc
+env/
+.env
