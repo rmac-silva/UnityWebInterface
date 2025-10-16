@@ -41,12 +41,11 @@ Additionally, the message should prompt the agent to respond, making the agent r
 
 ### Unity
 - NativeWebSocket package (included in the Unity package);
-- TMPro package (included in the Unity package);
 
 ### Python
-- nicegui == 2.12.1
-- pillow == 10.4.0
-- websockets == 15.0.1
+Check the requirements.txt file for the necessary packages. You can install them using pip:
+```pip install -r requirements.txt
+```
 
 # Expanding the WebSocket Functionality
 To add more features and exchange different information between Unity and the web server, you need to create new message types:
